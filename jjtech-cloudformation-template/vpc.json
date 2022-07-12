@@ -1,0 +1,158 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Parameters": {
+    "jjtechvpc": {
+      "Description": "Type a CIDR Block",
+      "Type": "String"
+    },
+    "subnet01cidr": {
+      "Description": "provide cidr for subnet",
+      "Type": "String"
+    },
+    "subnet01AZ": {
+      "Description": "provide az for subnet",
+      "Type": "String"
+    },
+    "subnet02cidr": {
+      "Description": "provide cidr for subnet",
+      "Type": "String"
+    },
+    "subnet02AZ": {
+      "Description": "provide az for subnet",
+      "Type": "String"
+    }
+  },
+
+
+  "Resources": {
+    "newvpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Ref": "jjtechvpc"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "newvpc"
+        }]
+      }
+    },
+    "igwName": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [{
+          "Key": "Name",
+          "Value": "my igw",
+          "Key": "Company",
+          "Value": "CYU"
+        }]
+      }
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "newvpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "igwName"
+        }
+      }
+    },
+    "subnet01": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "subnet01AZ"
+        },
+        "VpcId": {
+          "Ref": "newvpc"
+        },
+        "CidrBlock": {
+          "Ref": "subnet01cidr"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "Subnet01"
+        }]
+      }
+    },
+    "subnet02": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "subnet02AZ"
+        },
+        "VpcId": {
+          "Ref": "newvpc"
+        },
+        "CidrBlock": {
+          "Ref": "subnet02cidr"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "Subnet02"
+        }]
+      }
+    },
+    "SGhttp": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "security for http",
+        "VpcId": {
+          "Ref": "newvpc"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "SGhttp"
+        }],
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp",
+          "FromPort": "80",
+          "ToPort": "80",
+          "CidrIp": "0.0.0.0/0"
+        }, {
+          "IpProtocol": "tcp",
+          "FromPort": "22",
+          "ToPort": "22",
+          "CidrIp": "0.0.0.0/0"
+        }],
+        "SecurityGroupEgress": [{
+          "IpProtocol": "-1",
+          "CidrIp": "0.0.0.0/0"
+        }]
+      }
+    },
+    "MyEC2Instance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": "ami-0c02fb55956c7d316",
+        "KeyName": "EC2KP",
+        "InstanceType": "t2.micro",
+        "BlockDeviceMappings": [{
+            "DeviceName": "/dev/sdm",
+            "Ebs": {
+              "VolumeType": "io1",
+              "Iops": "200",
+              "DeleteOnTermination": "true",
+              "VolumeSize": "20",
+              "DeviceName": "/dev/sdk",
+              "NoDevice": {}
+            }
+
+        },
+
+          "Tags": {
+            "Key": "Name",
+            "Value": "webserserver01",
+          }
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {
+
+  },
+  "Parameters": {
+    "demovpccidr": {
+      "Description": "give cidr for vpc",
+      "Type": "String"
+
+    },
+    "azsubnetpublic": {
+      "Description": "select az for subnet",
+      "Type": "String"
+    },
+    "subnetcidrpublic": {
+      "Description": "chose a cidr for subnet",
+      "Type": "String"
+    },
+    "azsubnetprivate": {
+      "Description": "select az for subnet",
+      "Type": "String"
+    },
+    "subnetcidrprivate": {
+      "Description": "chose cidr for subnet",
+      "Type": "String"
+    },
+    "webserver01instancetype": {
+      "Description": "select instance type",
+      "Type": "String",
+      "AllowedValues": [
+        "t2.micro",
+        "t2.small",
+        "t2.nano",
+        "t1.micro"
+      ]
+    }
+  },
+  "Mappings": {
+
+  },
+  "Conditions": {
+
+  },
+  "Resources": {
+    "myvpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Ref": "demovpccidr"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "myvpc"
+        }]
+      }
+    },
+    "demoigw": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [{
+          "Key": "Name",
+          "Value": "demo igw"
+        }]
+      }
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "demoigw"
+        }
+      }
+    },
+
+    "demoSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow http to client host",
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp",
+          "FromPort": "80",
+          "ToPort": "80",
+          "CidrIp": "0.0.0.0/0"
+        }],
+        "SecurityGroupEgress": [{
+          "IpProtocol": "tcp",
+          "FromPort": 80,
+          "ToPort": 80,
+          "CidrIp": "0.0.0.0/0"
+        }],
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "demoSG"
+        }]
+      }
+    },
+    "publicsubnet01": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "azsubnetpublic"
+        },
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "CidrBlock": {
+          "Ref": "subnetcidrpublic"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "publicsubnet01"
+        }]
+      }
+    },
+    "privatesubnet01": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "azsubnetprivate"
+        },
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "CidrBlock": {
+          "Ref": "subnetcidrprivate"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "privatesubnet01"
+        }]
+      }
+    },
+    "webserver01": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "KeyName": "EC2KP",
+        "DisableApiTermination": "false",
+        "ImageId": "ami-0c02fb55956c7d316",
+        "InstanceType": {
+          "Ref": "webserver01instancetype"
+        },
+        "Monitoring": "true",
+        "Tags": [{
+            "Key": "Name",
+            "Value": "webserver01"
+          },
+          {
+            "Key": "Application",
+            "Value": "Apache Webserver"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": ["", [
+              "#!/bin/bash -xe\n",
+              "yum install -y aws-cfn-bootstrap\n",
+              "# Install the files and packages from the metadata\n",
+              "/opt/aws/bin/cfn-init ",
+              "yum install mysql mysql-server mysql-libs httpd php php-mysql",
+              "systemctl enable httpd",
+              "systemctl start httpd"
+            ]]
+          }
+        }
+      }
+    }
+  },
+
+  "Outputs": {
+
+  },
+
+}

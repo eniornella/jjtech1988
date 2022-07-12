@@ -1,0 +1,230 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {
+
+  },
+  "Parameters": {
+    "demovpc": {
+      "Description": "provide cidr for vpc",
+      "Type": "String"
+    },
+    "publicsubnetcidr": {
+      "Description": "provide cidr for public subnet",
+      "Type": "String"
+    },
+    "azpublicsubnet": {
+      "Description": "provide az for public subnet",
+      "Type": "String",
+      "AllowedValues": [
+        "us-east-1a",
+        "us-east-1b",
+        "us-west-1c"
+      ]
+    },
+    "privatesubnetcidr": {
+      "Description": "provide cidr for subnet",
+      "Type": "String"
+    },
+    "azprivatesubnet": {
+      "Description": "select az for subnet",
+      "Type": "String",
+      "AllowedValues": [
+        "us-east-1a",
+        "us-east-1b",
+        "us-west-1c"
+      ]
+
+    },
+    "instancetype": {
+      "Description": "select an instance type",
+      "Type": "String",
+      "AllowedValues": [
+        "t2.micro",
+        "t2.small",
+        "t2.nano"
+      ]
+    }
+  },
+  "Mappings": {
+
+  },
+  "Conditions": {
+
+  },
+  "Resources": {
+    "vpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Ref": "demovpc"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "vpc1"
+        }]
+      }
+    },
+    "publicsubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "azpublicsubnet"
+        },
+        "VpcId": {
+          "Ref": "vpc"
+        },
+        "CidrBlock": {
+          "Ref": "publicsubnetcidr"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "publicsubnet"
+        }]
+      }
+    },
+    "privatesubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "azprivatesubnet"
+        },
+        "VpcId": {
+          "Ref": "vpc"
+        },
+        "CidrBlock": {
+          "Ref": "privatesubnetcidr"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "privatesubnet"
+        }]
+      }
+    },
+    "testigw": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [{
+          "Key": "name",
+          "Value": "testigw"
+        }]
+      }
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "testigw"
+        }
+      }
+    },
+    "testRT": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "vpc"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "testRT"
+        }]
+      }
+    },
+    "testroute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "testRT"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "testigw"
+        }
+      }
+    },
+    "testSubnetRouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "publicsubnet"
+        },
+        "RouteTableId": {
+          "Ref": "testRT"
+        }
+      }
+    },
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow http to client host",
+        "VpcId": {
+          "Ref": "vpc"
+        },
+        "SecurityGroupIngress": [{
+          "IpProtocol": "tcp",
+          "FromPort": 80,
+          "ToPort": 80,
+          "CidrIp": "0.0.0.0/0"
+        }],
+        "SecurityGroupEgress": [{
+          "IpProtocol": "tcp",
+          "FromPort": 80,
+          "ToPort": 80,
+          "CidrIp": "0.0.0.0/0"
+        }]
+      }
+    },
+    "webserverdemo": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": {
+          "Ref": "instancetype"
+        },
+        "ImageId": {
+          "Ref": "ami-0c02fb55956c7d316"
+        },
+        "KeyName": "newkp",
+        "BlockDeviceMappings": [{
+            "DeviceName": "/dev/sdm",
+            "Ebs": {
+              "VolumeType": "io1",
+              "Iops": "200",
+              "DeleteOnTermination": "true",
+              "VolumeSize": "20"
+            }
+          },
+          {
+            "DeviceName": "/dev/sdk",
+            "NoDevice": {}
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "vpcID": {
+      "Value": {
+        "Ref": "vpc"
+      },
+      "Export": {
+        "Name": "vpcID"
+      }
+    },
+    "publicsubnetID": {
+      "Value": {
+        "Ref": "publicsubnet"
+      },
+      "Export": {
+        "Name": "publicsubnetID"
+      }
+    },
+    "azpublicsubnet": {
+      "Value": {
+        "Fn::GetAtt": ["publicsubnet", "AvailabilityZone"]
+      }
+    }
+  }
+}

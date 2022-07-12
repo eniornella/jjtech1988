@@ -1,0 +1,46 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {
+
+  },
+  "Parameters": {
+    "password": {
+      "Description": "set password for user",
+      "Type": "String"
+
+    },
+    "GroupName": {
+      "Description": "give a group name",
+      "Type": "String"
+    }
+  },
+  "Mappings": {},
+  "Conditions": {},
+
+  "Resources": {
+    "GroupName": {
+      "Type": "AWS:IAM:Group",
+      "Properties": {
+        "GroupName": {
+          "Ref": "GroupName"
+        }
+      }
+    },
+    "iamUser": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "UserName": "johnnyEnglish",
+        "LoginProfile": {
+          "Password": {
+            "Ref": "password"
+          },
+          "PasswordResetRequired": "True"
+        }
+      }
+    }
+  },
+  "OutPut": {
+
+  }
+}

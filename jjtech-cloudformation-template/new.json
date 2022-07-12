@@ -1,0 +1,91 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {
+
+  },
+  "Parameters": {
+    "EnvType": {
+      "Description": "is it for testing or production",
+      "Type": "String",
+      "AllowedValues": ["prod", "Test"
+
+      ],
+      "Default": "Test"
+    }
+
+  },
+  "Mappings": {
+    "Regions": {
+      "us-east-1": {
+        "Test": "ami-0c02fb55956c7d316"
+      },
+      "us-east-2": {
+        "prod": "ami-064ff912f78e3e561"
+      },
+      "us-west-1": {
+        "Test": "ami-04a50faf2a2ec1901"
+      }
+    }
+
+  },
+  "Conditions": {
+    "CreateProdResources": {
+      "Fn::Equals": [{
+          "Ref": "EnvType"
+        },
+        "prod"
+      ]
+    }
+  },
+
+  "Resources": {
+    "productioninstance": {
+      "Type": "AWS::EC2::Instance",
+      "Condition": "CreateProdResources",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "Regions",
+            {
+              "Ref": "AWS::Region"
+            },
+            "prod"
+          ]
+        },
+        "InstanceType": "t2.small",
+        "Tags": [{
+          "Key": "Name",
+          "Value": {
+            "Ref": "EnvType"
+          }
+        }],
+      }
+    },
+    "testinstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "Regions",
+            {
+              "Ref": "AWS::Region"
+            },
+            "Test"
+          ]
+        },
+        "InstanceType": "t2.micro",
+        "Tags": [{
+          "Key": "Name",
+          "Value": {
+            "Ref": "EnvType"
+          }
+        }],
+      }
+    }
+
+  },
+  "Outputs": {
+
+  }
+}

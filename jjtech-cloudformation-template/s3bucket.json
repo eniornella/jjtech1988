@@ -1,0 +1,52 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {
+
+  },
+  "Parameters": {
+    "s3BucketName": {
+      "Description": "give the s3 bucket a name",
+      "Type": "String"
+
+    },
+    "VersioningConfiguration": {
+      "Description": "select versioning type",
+      "Type": "String",
+      "AllowedValues": [
+        "Enable",
+        "Disable"
+      ]
+    },
+
+
+  },
+  "Mappings": {
+
+  },
+  "Conditions": {
+
+  },
+  "Resources": {
+    "S3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": {
+          "Ref": "s3BucketName"
+        },
+        "VersioningConfiguration": {
+          "Ref": "VersioningConfiguration"
+        }
+      },
+
+    },
+
+    }
+        },
+        "Outputs": {
+
+        }
+      }
+    }
+  }

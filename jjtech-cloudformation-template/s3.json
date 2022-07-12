@@ -1,0 +1,56 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {
+
+  },
+  "Parameters": {
+    "s3CrossConfiguration": {
+      "Description": "select region for cross configuration",
+      "Type": "String",
+      "AllowedValues": [
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2"
+      ]
+    },
+    "s3BucketVersioning": {
+      "Description": "select version type",
+      "Type": "String",
+      "AllowedValues": [
+        "Enable",
+        "Disable"
+      ]
+    }
+
+
+  },
+  "Mappings": {
+
+  },
+  "Conditions": {
+
+  },
+  "Resources": {
+    "s3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccessControl": "Private",
+        "BucketName": "test-bucket5178057922334961",
+
+        "VersioningConfiguration": {
+          "Ref": "s3BucketVersioning"
+        },
+        "Tags": [{
+          "Key": "Name",
+          "Value": "tests3bucket"
+        }]
+      }
+    }
+
+  },
+  "Outputs": {
+
+  }
+}
